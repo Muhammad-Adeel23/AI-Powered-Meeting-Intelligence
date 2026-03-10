@@ -8,9 +8,10 @@ import {
   Settings,
   Shield,
   Sparkles,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +25,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -44,7 +46,18 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const isActive = (path: string) => location.pathname === path;
+
+  const initials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "??";
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -116,13 +129,22 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent">
-            <span className="text-xs font-semibold text-sidebar-accent-foreground">JD</span>
+            <span className="text-xs font-semibold text-sidebar-accent-foreground">{initials}</span>
           </div>
           {!collapsed && (
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-sidebar-accent-foreground">John Doe</span>
-              <span className="text-[11px] text-sidebar-muted">Pro Plan</span>
+            <div className="flex flex-1 flex-col">
+              <span className="text-xs font-medium text-sidebar-accent-foreground">{user?.name || "Guest"}</span>
+              <span className="text-[11px] text-sidebar-muted">{user?.plan || "Free"}</span>
             </div>
+          )}
+          {!collapsed && (
+            <button
+              onClick={handleLogout}
+              className="text-sidebar-muted hover:text-sidebar-accent-foreground transition-colors"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           )}
         </div>
       </SidebarFooter>

@@ -35,8 +35,8 @@ const Landing = () => {
           <span className="text-lg font-bold tracking-tight">MeetingMind</span>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>Sign In</Button>
-          <Button variant="hero" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" onClick={() => navigate("/login")}>Sign In</Button>
+          <Button variant="hero" onClick={() => navigate("/signup")}>
             Get Started <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
