@@ -1,73 +1,67 @@
 
 
-# MeetingMind — Company-Based Restructure Plan
+# Authentication UI Pages Plan
 
-## Core Concept
-Company-centric architecture where both Admin and Employees can upload meetings. Admin manages company settings and users; Employees work within their company scope.
+## Overview
+Add complete authentication UI pages (no backend yet) that match the existing MeetingMind design system — clean, Linear/Notion-inspired styling with the navy/indigo palette.
 
-## Flow
+## Pages to Create
 
-```text
-1. Admin Signup → Creates Company + Admin Account
-2. Admin → Invites/Adds Employees to Company
-3. Employee Login → Sees only own company's data
-4. Meeting Upload (Admin OR Employee) → Participants dropdown shows company employees
-5. AI processes → Summary, Action Items generated
-6. All company users see meetings, summaries, action items
-```
+### 1. Login Page (`/login`)
+- Centered card layout with MeetingMind logo
+- Email + password form with validation
+- "Sign in with Google" button (styled, non-functional)
+- Links to: Forgot Password, Sign Up
 
-## Role-Based Sidebar
+### 2. Sign Up Page (`/signup`)
+- Same centered card layout
+- Fields: Full Name, Email, Password, Confirm Password
+- "Sign up with Google" button
+- Link to: Login
 
-**Admin sees:**
-- Dashboard, Upload Meeting, Meetings, Action Items, AI Summaries, Email Editor
-- Notifications
-- **Admin Dashboard** (user management, company stats)
-- Settings
+### 3. Forgot Password Page (`/forgot-password`)
+- Email input with "Send Reset Link" button
+- Success state showing "Check your email" message
+- Link back to Login
 
-**Employee sees:**
-- Dashboard, Upload Meeting, Meetings, Action Items, AI Summaries, Email Editor
-- Notifications
-- Settings
+### 4. Reset Password Page (`/reset-password`)
+- New Password + Confirm Password fields
+- Submit button
+- Redirect to Login on success
 
-Admin Dashboard and user management links are **hidden** from employees.
+### 5. Profile / Account Settings Page (`/settings`)
+- Inside AppLayout (sidebar visible)
+- Sections: Profile Info (name, email, avatar placeholder), Change Password form
+- Save buttons per section
 
-## Key Changes
+## Auth Context (UI-only)
+- Create `src/contexts/AuthContext.tsx` with a mock provider
+- Stores fake user state (logged in / logged out)
+- `login()`, `signup()`, `logout()` functions that just toggle state and navigate
+- Wrap app in provider so sidebar shows user info dynamically
 
-### 1. Auth Context Update
-- Add `role` field (`admin` | `employee`) and `companyId` to User interface
-- Signup flow creates company + admin user together
-- Employee accounts created by admin (invite flow)
+## Route Protection (UI-only)
+- Create `src/components/ProtectedRoute.tsx` — redirects to `/login` if not "logged in"
+- Wrap dashboard and internal routes with it
 
-### 2. Sidebar — Conditional Rendering
-- Filter `secondaryItems` based on `user.role`
-- Admin item only shows when `role === 'admin'`
+## Navigation Updates
+- **Landing page**: "Sign In" → `/login`, "Get Started" → `/signup`
+- **Sidebar footer**: "John Doe" becomes dynamic from auth context; add logout option
+- **Settings link** in sidebar becomes functional → `/settings`
 
-### 3. Upload Meeting Page
-- Participants field becomes a **multi-select dropdown** populated with company employees (mock data for now)
-- Both admin and employee can upload
-
-### 4. Signup Page Update
-- Add "Company Name" field for admin registration
-- Flow: Enter company name → creates org → user becomes admin
-
-### 5. Admin Dashboard Update
-- Add "Invite Employee" functionality (email input, role assignment)
-- Show company-specific stats only
-
-### 6. New: Employee Management (Admin only)
-- List employees, add/remove, change roles
-- Lives inside Admin Dashboard tab
-
-### Files to Change
-
-| File | Change |
+## File Changes Summary
+| File | Action |
 |------|--------|
-| `src/contexts/AuthContext.tsx` | Add `role`, `companyId`, `companyName` to User |
-| `src/components/layout/AppSidebar.tsx` | Conditional sidebar items by role |
-| `src/pages/Signup.tsx` | Add Company Name field |
-| `src/pages/UploadMeeting.tsx` | Participants multi-select dropdown with mock employees |
-| `src/pages/AdminDashboard.tsx` | Add employee invite/manage UI |
-| `src/pages/Settings.tsx` | Show company info for admin |
+| `src/pages/Login.tsx` | Create |
+| `src/pages/Signup.tsx` | Create |
+| `src/pages/ForgotPassword.tsx` | Create |
+| `src/pages/ResetPassword.tsx` | Create |
+| `src/pages/Settings.tsx` | Create |
+| `src/contexts/AuthContext.tsx` | Create |
+| `src/components/ProtectedRoute.tsx` | Create |
+| `src/App.tsx` | Add routes + AuthProvider wrapper |
+| `src/pages/Landing.tsx` | Update nav links |
+| `src/components/layout/AppSidebar.tsx` | Add logout, dynamic user |
 
-All changes are UI-only with mock data, ready for backend integration later.
+All auth pages use the same centered card design consistent with the landing page aesthetic. Forms use existing shadcn `Input`, `Button`, `Label`, and `Card` components with client-side validation via zod + react-hook-form.
 

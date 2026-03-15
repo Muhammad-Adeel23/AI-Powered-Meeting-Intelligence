@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Sparkles, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Sparkles, Mail, Lock, Eye, EyeOff, User, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 const signupSchema = z.object({
+  companyName: z.string().trim().min(2, "Company name must be at least 2 characters").max(100),
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().trim().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(128),
@@ -33,14 +34,14 @@ const Signup = () => {
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { companyName: "", name: "", email: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit = async (values: SignupValues) => {
     setIsLoading(true);
     try {
-      await signup(values.name, values.email, values.password);
-      toast({ title: "Account created!", description: "Welcome to MeetingMind." });
+      await signup(values.name, values.email, values.password, values.companyName);
+      toast({ title: "Account created!", description: `Welcome to MeetingMind. Your company "${values.companyName}" has been set up.` });
       navigate("/dashboard");
     } catch {
       toast({ title: "Error", description: "Could not create account.", variant: "destructive" });
@@ -59,7 +60,7 @@ const Signup = () => {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
-          <CardDescription>Get started with MeetingMind for free</CardDescription>
+          <CardDescription>Register your company and get started with MeetingMind</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button variant="outline" className="w-full" type="button" disabled>
@@ -79,6 +80,18 @@ const Signup = () => {
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="companyName" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company Name</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input placeholder="Acme Inc." className="pl-9" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>

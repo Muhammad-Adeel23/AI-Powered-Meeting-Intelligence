@@ -1,17 +1,15 @@
+import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, Activity, TrendingUp, BarChart3 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Users, FileText, Activity, TrendingUp, BarChart3, UserPlus, Trash2, Mail } from "lucide-react";
 import { motion } from "framer-motion";
-
-const users = [
-  { name: "John Doe", email: "john@company.com", role: "Admin", meetings: 45, lastActive: "Now" },
-  { name: "Sarah Chen", email: "sarah@company.com", role: "Member", meetings: 38, lastActive: "2h ago" },
-  { name: "Mike Ross", email: "mike@company.com", role: "Member", meetings: 22, lastActive: "1d ago" },
-  { name: "Emily Park", email: "emily@company.com", role: "Member", meetings: 31, lastActive: "3h ago" },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const platformStats = [
   { label: "Total Users", value: "24", icon: Users, change: "+3" },
@@ -21,12 +19,35 @@ const platformStats = [
 ];
 
 const AdminDashboard = () => {
+  const { user, companyEmployees, addEmployee, removeEmployee } = useAuth();
+  const { toast } = useToast();
+  const [inviteName, setInviteName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+
+  const handleInvite = () => {
+    if (!inviteName.trim() || !inviteEmail.trim()) {
+      toast({ title: "Error", description: "Please fill in both name and email.", variant: "destructive" });
+      return;
+    }
+    addEmployee({ name: inviteName.trim(), email: inviteEmail.trim(), role: "employee" });
+    toast({ title: "Employee added", description: `${inviteName} has been added to ${user?.companyName}.` });
+    setInviteName("");
+    setInviteEmail("");
+  };
+
+  const handleRemove = (id: string, name: string) => {
+    removeEmployee(id);
+    toast({ title: "Employee removed", description: `${name} has been removed.` });
+  };
+
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Platform overview and user management</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {user?.companyName} — Platform overview and user management
+          </p>
         </div>
 
         {/* Stats */}
@@ -55,38 +76,86 @@ const AdminDashboard = () => {
         {/* Tabs */}
         <Tabs defaultValue="users">
           <TabsList>
-            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="users">Employees</TabsTrigger>
+            <TabsTrigger value="invite">Invite Employee</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-4">
             <Card className="shadow-sm">
               <div className="p-4 border-b border-border flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Team Members</h3>
-                <Button variant="hero" size="sm">Invite User</Button>
+                <h3 className="text-sm font-semibold">
+                  Team Members ({companyEmployees.length})
+                </h3>
               </div>
               <div className="divide-y divide-border">
-                {users.map((user) => (
-                  <div key={user.email} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                {companyEmployees.map((emp) => (
+                  <div key={emp.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent">
                         <span className="text-xs font-semibold text-accent-foreground">
-                          {user.name.split(" ").map((n) => n[0]).join("")}
+                          {emp.name.split(" ").map((n) => n[0]).join("")}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                        <p className="text-sm font-medium">{emp.name}</p>
+                        <p className="text-xs text-muted-foreground">{emp.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-muted-foreground">{user.meetings} meetings</span>
-                      <span className="text-xs text-muted-foreground">{user.lastActive}</span>
-                      <Badge variant="secondary" className="text-xs">{user.role}</Badge>
+                    <div className="flex items-center gap-3">
+                      <Badge variant={emp.role === "admin" ? "default" : "secondary"} className="text-xs capitalize">
+                        {emp.role}
+                      </Badge>
+                      {emp.role !== "admin" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemove(emp.id, emp.name)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="invite" className="mt-4">
+            <Card className="shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <UserPlus className="h-5 w-5 text-primary" />
+                <h3 className="text-sm font-semibold">Add New Employee</h3>
+              </div>
+              <div className="space-y-4 max-w-md">
+                <div>
+                  <Label htmlFor="invite-name">Full Name</Label>
+                  <Input
+                    id="invite-name"
+                    placeholder="e.g. Jane Smith"
+                    className="mt-1.5"
+                    value={inviteName}
+                    onChange={(e) => setInviteName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="invite-email">Email Address</Label>
+                  <div className="relative mt-1.5">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="invite-email"
+                      placeholder="jane@company.com"
+                      className="pl-9"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <Button onClick={handleInvite}>
+                  <UserPlus className="h-4 w-4 mr-2" /> Add Employee
+                </Button>
               </div>
             </Card>
           </TabsContent>
@@ -97,15 +166,6 @@ const AdminDashboard = () => {
               <h3 className="font-semibold mb-1">Analytics Coming Soon</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
                 Detailed usage analytics, meeting trends, and AI performance metrics will be available here.
-              </p>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings" className="mt-4">
-            <Card className="p-12 shadow-sm flex flex-col items-center justify-center text-center">
-              <h3 className="font-semibold mb-1">Platform Settings</h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                Configure workspace settings, integrations, and security policies.
               </p>
             </Card>
           </TabsContent>

@@ -4,13 +4,49 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload as UploadIcon, FileAudio, X } from "lucide-react";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Upload as UploadIcon, FileAudio, X, ChevronDown, Check } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import type { CompanyEmployee } from "@/contexts/AuthContext";
 
 const UploadMeeting = () => {
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [selectedParticipants, setSelectedParticipants] = useState<CompanyEmployee[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { companyEmployees } = useAuth();
+
+  const filteredEmployees = companyEmployees.filter(
+    (emp) =>
+      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleParticipant = (emp: CompanyEmployee) => {
+    setSelectedParticipants((prev) =>
+      prev.find((p) => p.id === emp.id)
+        ? prev.filter((p) => p.id !== emp.id)
+        : [...prev, emp]
+    );
+  };
+
+  const removeParticipant = (id: string) => {
+    setSelectedParticipants((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -84,10 +120,87 @@ const UploadMeeting = () => {
                 <Label htmlFor="title">Meeting Title</Label>
                 <Input id="title" placeholder="e.g. Sprint Planning Q1" className="mt-1.5" />
               </div>
-              <div>
-                <Label htmlFor="participants">Participants</Label>
-                <Input id="participants" placeholder="e.g. John, Sarah, Mike" className="mt-1.5" />
+
+              {/* Participants Multi-Select Dropdown */}
+              <div ref={dropdownRef}>
+                <Label>Participants</Label>
+                <div className="mt-1.5 relative">
+                  <div
+                    className="flex flex-wrap items-center gap-1.5 min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 cursor-pointer"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                    {selectedParticipants.length > 0 ? (
+                      <>
+                        {selectedParticipants.map((p) => (
+                          <Badge
+                            key={p.id}
+                            variant="secondary"
+                            className="text-xs flex items-center gap-1"
+                          >
+                            {p.name}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeParticipant(p.id);
+                              }}
+                              className="ml-0.5 hover:text-foreground"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Select participants...</span>
+                    )}
+                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+                  </div>
+
+                  {dropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md">
+                      <div className="p-2 border-b border-border">
+                        <Input
+                          placeholder="Search employees..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="h-8 text-sm"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="max-h-48 overflow-y-auto p-1">
+                        {filteredEmployees.length === 0 ? (
+                          <p className="text-sm text-muted-foreground p-2 text-center">No employees found</p>
+                        ) : (
+                          filteredEmployees.map((emp) => {
+                            const isSelected = selectedParticipants.some((p) => p.id === emp.id);
+                            return (
+                              <button
+                                key={emp.id}
+                                type="button"
+                                className="flex items-center gap-3 w-full rounded-sm px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleParticipant(emp);
+                                }}
+                              >
+                                <div className={`flex h-4 w-4 items-center justify-center rounded-sm border ${isSelected ? "bg-primary border-primary" : "border-input"}`}>
+                                  {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                                </div>
+                                <div className="flex flex-col items-start">
+                                  <span className="font-medium">{emp.name}</span>
+                                  <span className="text-xs text-muted-foreground">{emp.email}</span>
+                                </div>
+                                <Badge variant="outline" className="ml-auto text-[10px]">{emp.role}</Badge>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
+
               <div>
                 <Label htmlFor="notes">Additional Notes</Label>
                 <Textarea id="notes" placeholder="Any context for the AI..." className="mt-1.5" rows={3} />
