@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -67,6 +68,32 @@ const Settings = () => {
           <p className="text-muted-foreground">Manage your account and preferences</p>
         </div>
 
+        {/* Company Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Company Information
+            </CardTitle>
+            <CardDescription>Your organization details</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Building2 className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">{user?.companyName || "—"}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs capitalize">{user?.role || "—"}</Badge>
+                  <span className="text-xs text-muted-foreground">·</span>
+                  <span className="text-xs text-muted-foreground">{user?.plan}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Section */}
         <Card>
           <CardHeader>
@@ -80,7 +107,7 @@ const Settings = () => {
               </div>
               <div>
                 <p className="font-medium">{user?.name}</p>
-                <p className="text-sm text-muted-foreground">{user?.plan}</p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
             <Separator />

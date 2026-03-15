@@ -38,7 +38,7 @@ const mainItems = [
 
 const secondaryItems = [
   { title: "Notifications", url: "/notifications", icon: Bell },
-  { title: "Admin", url: "/admin", icon: Shield },
+  { title: "Admin", url: "/admin", icon: Shield, adminOnly: true },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -49,6 +49,10 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const isActive = (path: string) => location.pathname === path;
+
+  const filteredSecondaryItems = secondaryItems.filter(
+    (item) => !item.adminOnly || user?.role === "admin"
+  );
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -67,9 +71,16 @@ export function AppSidebar() {
             <Sparkles className="h-4 w-4 text-sidebar-primary-foreground" />
           </div>
           {!collapsed && (
-            <span className="text-sm font-bold tracking-tight text-sidebar-accent-foreground">
-              MeetingMind
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold tracking-tight text-sidebar-accent-foreground">
+                MeetingMind
+              </span>
+              {user?.companyName && (
+                <span className="text-[11px] text-sidebar-muted truncate max-w-[140px]">
+                  {user.companyName}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </SidebarHeader>
@@ -106,7 +117,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {secondaryItems.map((item) => (
+              {filteredSecondaryItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
@@ -134,7 +145,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex flex-1 flex-col">
               <span className="text-xs font-medium text-sidebar-accent-foreground">{user?.name || "Guest"}</span>
-              <span className="text-[11px] text-sidebar-muted">{user?.plan || "Free"}</span>
+              <span className="text-[11px] text-sidebar-muted">{user?.role === "admin" ? "Admin" : "Employee"} · {user?.plan || "Free"}</span>
             </div>
           )}
           {!collapsed && (
