@@ -2,13 +2,14 @@ import {
   LayoutDashboard,
   Upload,
   FileText,
-  CheckSquare,
   Mail,
-  Bell,
   Settings,
   Shield,
   Sparkles,
   LogOut,
+  Building2,
+  Users,
+  Cog,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -26,20 +27,29 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import type { UserRole } from "@/contexts/AuthContext";
 
-const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Upload Meeting", url: "/upload", icon: Upload },
-  { title: "Meetings", url: "/meetings", icon: FileText },
-  { title: "Action Items", url: "/actions", icon: CheckSquare },
-  { title: "AI Summaries", url: "/summaries", icon: Sparkles },
-  { title: "Email Editor", url: "/email", icon: Mail },
+interface NavItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: UserRole[];
+}
+
+const mainItems: NavItem[] = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["superadmin", "admin", "employee"] },
+  { title: "Companies", url: "/companies", icon: Building2, roles: ["superadmin"] },
+  { title: "Meetings", url: "/meetings", icon: FileText, roles: ["superadmin", "admin", "employee"] },
+  { title: "Upload Meeting", url: "/upload", icon: Upload, roles: ["admin", "employee"] },
+  { title: "Users", url: "/users", icon: Users, roles: ["superadmin", "admin"] },
+  { title: "AI Insights", url: "/insights", icon: Sparkles, roles: ["admin", "employee"] },
 ];
 
-const secondaryItems = [
-  { title: "Notifications", url: "/notifications", icon: Bell },
-  { title: "Admin", url: "/admin", icon: Shield, adminOnly: true },
-  { title: "Settings", url: "/settings", icon: Settings },
+const secondaryItems: NavItem[] = [
+  { title: "Email Templates", url: "/email-templates", icon: Mail, roles: ["superadmin"] },
+  { title: "System Settings", url: "/system-settings", icon: Shield, roles: ["superadmin"] },
+  { title: "Company Settings", url: "/company-settings", icon: Cog, roles: ["admin"] },
+  { title: "Settings", url: "/settings", icon: Settings, roles: ["admin", "employee"] },
 ];
 
 export function AppSidebar() {
@@ -50,9 +60,10 @@ export function AppSidebar() {
   const { user, logout } = useAuth();
   const isActive = (path: string) => location.pathname === path;
 
-  const filteredSecondaryItems = secondaryItems.filter(
-    (item) => !item.adminOnly || user?.role === "admin"
-  );
+  const role = user?.role || "employee";
+
+  const visibleMain = mainItems.filter((item) => item.roles.includes(role));
+  const visibleSecondary = secondaryItems.filter((item) => item.roles.includes(role));
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -62,6 +73,8 @@ export function AppSidebar() {
     logout();
     navigate("/login");
   };
+
+  const roleLabel = role === "superadmin" ? "Super Admin" : role === "admin" ? "Admin" : "Employee";
 
   return (
     <Sidebar collapsible="icon">
@@ -80,6 +93,9 @@ export function AppSidebar() {
                   {user.companyName}
                 </span>
               )}
+              {role === "superadmin" && (
+                <span className="text-[11px] text-sidebar-muted">Platform</span>
+              )}
             </div>
           )}
         </div>
@@ -92,7 +108,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {visibleMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
@@ -111,30 +127,32 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-muted text-[11px] font-semibold uppercase tracking-wider">
-            System
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {filteredSecondaryItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {visibleSecondary.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-muted text-[11px] font-semibold uppercase tracking-wider">
+              System
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleSecondary.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className="hover:bg-sidebar-accent"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-3">
@@ -145,7 +163,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex flex-1 flex-col">
               <span className="text-xs font-medium text-sidebar-accent-foreground">{user?.name || "Guest"}</span>
-              <span className="text-[11px] text-sidebar-muted">{user?.role === "admin" ? "Admin" : "Employee"} · {user?.plan || "Free"}</span>
+              <span className="text-[11px] text-sidebar-muted">{roleLabel} · {user?.plan || "Free"}</span>
             </div>
           )}
           {!collapsed && (
