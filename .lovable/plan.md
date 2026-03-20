@@ -1,67 +1,137 @@
 
 
-# Authentication UI Pages Plan
+# Plan: Backend Endpoints + Login Fix + Email Editor Fix
 
-## Overview
-Add complete authentication UI pages (no backend yet) that match the existing MeetingMind design system — clean, Linear/Notion-inspired styling with the navy/indigo palette.
+## Part 1: .NET Backend Endpoint Code (Repository Pattern)
 
-## Pages to Create
+This is backend code for your .NET project — not built in Lovable, but provided as complete code for you to add to your .NET solution.
 
-### 1. Login Page (`/login`)
-- Centered card layout with MeetingMind logo
-- Email + password form with validation
-- "Sign in with Google" button (styled, non-functional)
-- Links to: Forgot Password, Sign Up
+### Folder Structure
+```text
+Controllers/
+  AccountController.cs       — Register, Login, ChangePassword
+Services/
+  IAccountService.cs         — Interface
+  AccountService.cs          — Business logic
+Repositories/
+  IUserRepository.cs         — Interface
+  UserRepository.cs          — DB queries (Dapper/EF)
+  ICompanyRepository.cs
+  CompanyRepository.cs
+DTOs/
+  RegisterRequest.cs         — { CompanyName, FullName, Email, Password }
+  CreateUserRequest.cs       — { UserName, Email, FullName, CompanyId, RoleId }
+  ChangePasswordRequest.cs   — { OldPassword, NewPassword }
+  LoginRequest.cs            — { Email, Password }
+  LoginResponse.cs           — { Token, User { Id, FullName, Email, Role, CompanyId, CompanyName } }
+```
 
-### 2. Sign Up Page (`/signup`)
-- Same centered card layout
-- Fields: Full Name, Email, Password, Confirm Password
-- "Sign up with Google" button
-- Link to: Login
+### Endpoint 1: POST /api/Account/Register (Company Signup)
+**Request**: `{ companyName, fullName, email, password }`
+**Flow**:
+1. Check if email already exists in Users → return 400
+2. INSERT into `Companies` (Name, PlanName='Starter', CreatedOn)
+3. Hash password
+4. INSERT into `Users` (UserName=email, Email, FullName, PasswordHash, CompanyId, IsActive=1)
+5. Get Admin RoleId from `Roles` table
+6. INSERT into `UserRoles` (UserId, RoleId)
+7. Generate JWT token with claims: userId, role, companyId
+8. Return `{ token, user: { id, fullName, email, role: "admin", companyId, companyName } }`
 
-### 3. Forgot Password Page (`/forgot-password`)
-- Email input with "Send Reset Link" button
-- Success state showing "Check your email" message
-- Link back to Login
+### Endpoint 2: POST /api/Account/CreateUser (Admin adds Employee)
+**Request**: `{ userName, email, fullName, companyId, roleId }` + Auth header (Admin token)
+**Flow**:
+1. Verify caller is Admin and belongs to same companyId
+2. Check email not already in use → return 400
+3. Generate temporary password, hash it
+4. INSERT into `Users` (UserName, Email, FullName, PasswordHash, CompanyId, IsActive=1, CreatedBy=adminId)
+5. INSERT into `UserRoles` (UserId, RoleId)
+6. Return `{ success: true, userId, tempPassword }` (or send invite email)
 
-### 4. Reset Password Page (`/reset-password`)
-- New Password + Confirm Password fields
-- Submit button
-- Redirect to Login on success
+### Endpoint 3: POST /api/Account/ChangePassword
+**Request**: `{ oldPassword, newPassword }` + Auth header
+**Flow**:
+1. Get userId from JWT token
+2. Fetch user from Users table
+3. Verify oldPassword matches PasswordHash → return 400 if wrong
+4. Hash newPassword
+5. UPDATE `Users` SET PasswordHash, UpdatedOn, UpdatedBy
+6. Return `{ success: true, message: "Password changed" }`
 
-### 5. Profile / Account Settings Page (`/settings`)
-- Inside AppLayout (sidebar visible)
-- Sections: Profile Info (name, email, avatar placeholder), Change Password form
-- Save buttons per section
+### Login Response Structure (Important)
+Your existing `/api/Account/login` should return role info:
+```json
+{
+  "token": "jwt...",
+  "user": {
+    "id": 1,
+    "fullName": "John Doe",
+    "email": "john@acme.com",
+    "role": "admin",
+    "companyId": 5,
+    "companyName": "Acme Corp"
+  }
+}
+```
+The frontend will use `role` from this response to determine sidebar and page access.
 
-## Auth Context (UI-only)
-- Create `src/contexts/AuthContext.tsx` with a mock provider
-- Stores fake user state (logged in / logged out)
-- `login()`, `signup()`, `logout()` functions that just toggle state and navigate
-- Wrap app in provider so sidebar shows user info dynamically
+---
 
-## Route Protection (UI-only)
-- Create `src/components/ProtectedRoute.tsx` — redirects to `/login` if not "logged in"
-- Wrap dashboard and internal routes with it
+## Part 2: Frontend Changes (Lovable)
 
-## Navigation Updates
-- **Landing page**: "Sign In" → `/login`, "Get Started" → `/signup`
-- **Sidebar footer**: "John Doe" becomes dynamic from auth context; add logout option
-- **Settings link** in sidebar becomes functional → `/settings`
+### A. Login Page — Remove Demo Buttons, Connect to Real API
 
-## File Changes Summary
+**File**: `src/pages/Login.tsx`
+- Remove the 3 demo quick-login buttons (lines 61-74)
+- Remove the separator text "sign in with email"
+- Keep clean email + password form only
+- `login()` in AuthContext will call `API_ENDPOINTS.LOGIN` via fetch
+
+### B. AuthContext — Real API Integration
+
+**File**: `src/contexts/AuthContext.tsx`
+- `login()`: POST to `API_ENDPOINTS.LOGIN`, store JWT token in localStorage, parse user+role from response
+- `signup()`: POST to `API_ENDPOINTS.REGISTER` with companyName
+- Remove all MOCK_USERS, MOCK_COMPANIES data
+- Add `token` to state, include in API headers
+- Role comes from backend response, not hardcoded email matching
+
+### C. Email Editor — Add Route + Sidebar Link
+
+**File**: `src/App.tsx`
+- Add: `import EmailEditor from "./pages/EmailEditor";`
+- Add route: `/email-editor` wrapped in ProtectedRoute for admin + employee
+
+**File**: `src/components/layout/AppSidebar.tsx`
+- Add to mainItems: `{ title: "Email Editor", url: "/email-editor", icon: Mail, roles: ["admin", "employee"] }`
+- Remove duplicate Mail icon from Email Templates (use different icon like `FileText` for templates)
+
+### D. API Config Update
+
+**File**: `src/config/api.ts`
+- Add `CREATE_USER: \`\${API_BASE_URL}/api/Account/CreateUser\``
+- Clean up Resume/Personality endpoints (not needed for MeetingMind)
+
+### E. Create Auth Service
+
+**File**: `src/services/authService.ts` (new)
+- `loginUser(email, password)` → POST to LOGIN endpoint
+- `registerCompany(companyName, fullName, email, password)` → POST to REGISTER
+- `changePassword(oldPassword, newPassword)` → POST to CHANGE_PASSWORD with token header
+- `createUser(userData)` → POST to CREATE_USER with token header
+
+---
+
+## Summary of File Changes
+
 | File | Action |
 |------|--------|
-| `src/pages/Login.tsx` | Create |
-| `src/pages/Signup.tsx` | Create |
-| `src/pages/ForgotPassword.tsx` | Create |
-| `src/pages/ResetPassword.tsx` | Create |
-| `src/pages/Settings.tsx` | Create |
-| `src/contexts/AuthContext.tsx` | Create |
-| `src/components/ProtectedRoute.tsx` | Create |
-| `src/App.tsx` | Add routes + AuthProvider wrapper |
-| `src/pages/Landing.tsx` | Update nav links |
-| `src/components/layout/AppSidebar.tsx` | Add logout, dynamic user |
+| `src/pages/Login.tsx` | Remove demo buttons, clean form |
+| `src/contexts/AuthContext.tsx` | Replace mocks with real API calls |
+| `src/services/authService.ts` | Create — API call functions |
+| `src/config/api.ts` | Add CREATE_USER endpoint |
+| `src/App.tsx` | Add `/email-editor` route |
+| `src/components/layout/AppSidebar.tsx` | Add Email Editor link |
 
-All auth pages use the same centered card design consistent with the landing page aesthetic. Forms use existing shadcn `Input`, `Button`, `Label`, and `Card` components with client-side validation via zod + react-hook-form.
+Backend .NET code will be provided as a downloadable document with complete Repository Pattern implementation.
 
