@@ -13,10 +13,37 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import type { UserRole } from "@/contexts/AuthContext";
 
+interface UserEntry {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  companyId?: string;
+  companyName?: string;
+}
+
+const MOCK_COMPANIES = [
+  { id: "comp-1", name: "MeetingMind Inc." },
+  { id: "comp-2", name: "Acme Corp" },
+  { id: "comp-3", name: "TechStart Ltd" },
+];
+
+const MOCK_USERS: UserEntry[] = [
+  { id: "1", name: "John Doe", email: "john@meetingmind.com", role: "admin", companyId: "comp-1", companyName: "MeetingMind Inc." },
+  { id: "2", name: "Sarah Chen", email: "sarah@meetingmind.com", role: "employee", companyId: "comp-1", companyName: "MeetingMind Inc." },
+  { id: "3", name: "Mike Ross", email: "mike@meetingmind.com", role: "employee", companyId: "comp-1", companyName: "MeetingMind Inc." },
+  { id: "4", name: "Emily Park", email: "emily@meetingmind.com", role: "employee", companyId: "comp-1", companyName: "MeetingMind Inc." },
+  { id: "5", name: "Alex Johnson", email: "alex@acme.com", role: "admin", companyId: "comp-2", companyName: "Acme Corp" },
+  { id: "6", name: "Lisa Wang", email: "lisa@acme.com", role: "employee", companyId: "comp-2", companyName: "Acme Corp" },
+  { id: "7", name: "David Kim", email: "david@techstart.com", role: "admin", companyId: "comp-3", companyName: "TechStart Ltd" },
+  { id: "8", name: "Rachel Green", email: "rachel@techstart.com", role: "employee", companyId: "comp-3", companyName: "TechStart Ltd" },
+];
+
 const UsersPage = () => {
-  const { user, allUsers, companies, addEmployee, removeEmployee } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const role = user?.role || "employee";
+  const [allUsers, setAllUsers] = useState<UserEntry[]>(MOCK_USERS);
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -27,12 +54,10 @@ const UsersPage = () => {
 
   let filtered = allUsers;
 
-  // Admin sees only own company
   if (role === "admin") {
     filtered = filtered.filter((u) => u.companyId === user?.companyId);
   }
 
-  // SuperAdmin company filter
   if (role === "superadmin" && companyFilter !== "all") {
     filtered = filtered.filter((u) => u.companyId === companyFilter);
   }
@@ -46,15 +71,17 @@ const UsersPage = () => {
 
   const handleAdd = () => {
     if (!newName.trim() || !newEmail.trim()) return;
-    addEmployee({
+    const companyName = role === "superadmin"
+      ? MOCK_COMPANIES.find((c) => c.id === newCompanyId)?.name
+      : user?.companyName;
+    setAllUsers((prev) => [...prev, {
+      id: "usr-" + Date.now(),
       name: newName.trim(),
       email: newEmail.trim(),
       role: newRole,
       companyId: role === "superadmin" ? newCompanyId : user?.companyId,
-      companyName: role === "superadmin"
-        ? companies.find((c) => c.id === newCompanyId)?.name
-        : user?.companyName,
-    });
+      companyName,
+    }]);
     toast({ title: "User added", description: `${newName} has been added.` });
     setNewName("");
     setNewEmail("");
@@ -62,7 +89,7 @@ const UsersPage = () => {
   };
 
   const handleRemove = (id: string, name: string) => {
-    removeEmployee(id);
+    setAllUsers((prev) => prev.filter((u) => u.id !== id));
     toast({ title: "User removed", description: `${name} has been removed.` });
   };
 
@@ -85,12 +112,10 @@ const UsersPage = () => {
           <div className="flex items-center gap-2">
             {role === "superadmin" && (
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
-                <SelectTrigger className="w-48 h-9">
-                  <SelectValue placeholder="All Companies" />
-                </SelectTrigger>
+                <SelectTrigger className="w-48 h-9"><SelectValue placeholder="All Companies" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Companies</SelectItem>
-                  {companies.map((c) => (
+                  {MOCK_COMPANIES.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -98,21 +123,14 @@ const UsersPage = () => {
             )}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                className="pl-9 w-64 h-9"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <Input placeholder="Search users..." className="pl-9 w-64 h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button><UserPlus className="h-4 w-4" /> Add User</Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New User</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>Add New User</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div>
                     <Label>Full Name</Label>
@@ -128,9 +146,7 @@ const UsersPage = () => {
                   <div>
                     <Label>Role</Label>
                     <Select value={newRole} onValueChange={(v) => setNewRole(v as UserRole)}>
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="employee">Employee</SelectItem>
@@ -141,11 +157,9 @@ const UsersPage = () => {
                     <div>
                       <Label>Company</Label>
                       <Select value={newCompanyId} onValueChange={setNewCompanyId}>
-                        <SelectTrigger className="mt-1.5">
-                          <SelectValue placeholder="Select company" />
-                        </SelectTrigger>
+                        <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select company" /></SelectTrigger>
                         <SelectContent>
-                          {companies.map((c) => (
+                          {MOCK_COMPANIES.map((c) => (
                             <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                           ))}
                         </SelectContent>
@@ -184,31 +198,20 @@ const UsersPage = () => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent">
-                          <span className="text-xs font-semibold text-accent-foreground">
-                            {u.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                          </span>
+                          <span className="text-xs font-semibold text-accent-foreground">{u.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</span>
                         </div>
                         <span className="font-medium">{u.name}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className={`text-xs capitalize ${roleColors[u.role]}`}>
-                        {u.role}
-                      </Badge>
+                      <Badge variant="secondary" className={`text-xs capitalize ${roleColors[u.role]}`}>{u.role}</Badge>
                     </TableCell>
                     {role === "superadmin" && (
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">{u.companyName}</Badge>
-                      </TableCell>
+                      <TableCell><Badge variant="outline" className="text-xs">{u.companyName}</Badge></TableCell>
                     )}
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleRemove(u.id, u.name)}
-                      >
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleRemove(u.id, u.name)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>

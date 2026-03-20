@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
 const CompanySettings = () => {
-  const { user, companyEmployees } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [companyName, setCompanyName] = useState(user?.companyName || "");
 
@@ -42,7 +42,7 @@ const CompanySettings = () => {
               <div className="flex items-center gap-2 text-sm">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Team Members:</span>
-                <span className="font-medium">{companyEmployees.length}</span>
+                <span className="font-medium">—</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <FileText className="h-4 w-4 text-muted-foreground" />

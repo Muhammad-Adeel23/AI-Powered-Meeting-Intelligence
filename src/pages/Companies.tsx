@@ -9,13 +9,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Building2, Plus, Search, Users, FileText, Trash2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+interface Company {
+  id: string;
+  name: string;
+  plan: string;
+  createdAt: string;
+  employeeCount: number;
+  meetingCount: number;
+}
+
+const MOCK_COMPANIES: Company[] = [
+  { id: "comp-1", name: "MeetingMind Inc.", plan: "Enterprise", createdAt: "2025-01-15", employeeCount: 12, meetingCount: 156 },
+  { id: "comp-2", name: "Acme Corp", plan: "Pro", createdAt: "2025-03-20", employeeCount: 8, meetingCount: 89 },
+  { id: "comp-3", name: "TechStart Ltd", plan: "Starter", createdAt: "2025-06-10", employeeCount: 4, meetingCount: 32 },
+];
+
 const Companies = () => {
-  const { companies, addCompany, removeCompany } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [companies, setCompanies] = useState<Company[]>(MOCK_COMPANIES);
   const [search, setSearch] = useState("");
   const [newName, setNewName] = useState("");
   const [newPlan, setNewPlan] = useState("Starter");
@@ -27,14 +41,14 @@ const Companies = () => {
 
   const handleCreate = () => {
     if (!newName.trim()) return;
-    addCompany({ name: newName.trim(), plan: newPlan, createdAt: new Date().toISOString().split("T")[0], employeeCount: 0, meetingCount: 0 });
+    setCompanies((prev) => [...prev, { id: "comp-" + Date.now(), name: newName.trim(), plan: newPlan, createdAt: new Date().toISOString().split("T")[0], employeeCount: 0, meetingCount: 0 }]);
     toast({ title: "Company created", description: `${newName} has been added.` });
     setNewName("");
     setDialogOpen(false);
   };
 
   const handleDelete = (id: string, name: string) => {
-    removeCompany(id);
+    setCompanies((prev) => prev.filter((c) => c.id !== id));
     toast({ title: "Company deleted", description: `${name} has been removed.` });
   };
 
@@ -49,21 +63,14 @@ const Companies = () => {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search companies..."
-                className="pl-9 w-64 h-9"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <Input placeholder="Search companies..." className="pl-9 w-64 h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button><Plus className="h-4 w-4" /> Add Company</Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Company</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>Create New Company</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div>
                     <Label>Company Name</Label>
@@ -111,28 +118,18 @@ const Companies = () => {
                         <span className="font-medium">{company.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">{company.plan}</Badge>
+                    <TableCell><Badge variant="outline" className="text-xs">{company.plan}</Badge></TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1 text-muted-foreground"><Users className="h-3.5 w-3.5" /> {company.employeeCount}</div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                        <Users className="h-3.5 w-3.5" /> {company.employeeCount}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1 text-muted-foreground">
-                        <FileText className="h-3.5 w-3.5" /> {company.meetingCount}
-                      </div>
+                      <div className="flex items-center justify-center gap-1 text-muted-foreground"><FileText className="h-3.5 w-3.5" /> {company.meetingCount}</div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{company.createdAt}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/users?company=${company.id}`)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(company.id, company.name)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/users?company=${company.id}`)}><Eye className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(company.id, company.name)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>

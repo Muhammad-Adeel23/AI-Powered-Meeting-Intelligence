@@ -43,10 +43,11 @@ const mainItems: NavItem[] = [
   { title: "Upload Meeting", url: "/upload", icon: Upload, roles: ["admin", "employee"] },
   { title: "Users", url: "/users", icon: Users, roles: ["superadmin", "admin"] },
   { title: "AI Insights", url: "/insights", icon: Sparkles, roles: ["admin", "employee"] },
+  { title: "Email Editor", url: "/email-editor", icon: Mail, roles: ["admin", "employee"] },
 ];
 
 const secondaryItems: NavItem[] = [
-  { title: "Email Templates", url: "/email-templates", icon: Mail, roles: ["superadmin"] },
+  { title: "Email Templates", url: "/email-templates", icon: FileText, roles: ["superadmin"] },
   { title: "System Settings", url: "/system-settings", icon: Shield, roles: ["superadmin"] },
   { title: "Company Settings", url: "/company-settings", icon: Cog, roles: ["admin"] },
   { title: "Settings", url: "/settings", icon: Settings, roles: ["admin", "employee"] },

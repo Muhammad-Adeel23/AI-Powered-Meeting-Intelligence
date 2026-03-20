@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -37,8 +36,8 @@ const Login = () => {
       await login(values.email, values.password);
       toast({ title: "Welcome back!", description: "You've been signed in successfully." });
       navigate("/dashboard");
-    } catch {
-      toast({ title: "Error", description: "Invalid credentials.", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Invalid credentials.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -56,28 +55,7 @@ const Login = () => {
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>Sign in to your MeetingMind account</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Quick login helpers */}
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground text-center">Quick login (demo):</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1 text-xs" type="button" onClick={() => { form.setValue("email", "super@meetingmind.com"); form.setValue("password", "password"); }}>
-                Super Admin
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 text-xs" type="button" onClick={() => { form.setValue("email", "john@meetingmind.com"); form.setValue("password", "password"); }}>
-                Admin
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 text-xs" type="button" onClick={() => { form.setValue("email", "sarah@meetingmind.com"); form.setValue("password", "password"); }}>
-                Employee
-              </Button>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><Separator /></div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">sign in with email</span>
-            </div>
-          </div>
+        <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField control={form.control} name="email" render={({ field }) => (
