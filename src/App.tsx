@@ -21,6 +21,7 @@ import EmailTemplates from "./pages/EmailTemplates";
 import SystemSettings from "./pages/SystemSettings";
 import CompanySettings from "./pages/CompanySettings";
 import Settings from "./pages/Settings";
+import EmailEditor from "./pages/EmailEditor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
