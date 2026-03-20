@@ -62,6 +62,9 @@ const App = () => (
             {/* Admin only */}
             <Route path="/company-settings" element={<ProtectedRoute allowedRoles={["admin"]}><CompanySettings /></ProtectedRoute>} />
 
+            {/* Admin + Employee */}
+            <Route path="/email-editor" element={<ProtectedRoute allowedRoles={["admin", "employee"]}><EmailEditor /></ProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
