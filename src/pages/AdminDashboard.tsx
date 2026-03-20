@@ -11,6 +11,20 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+const MOCK_EMPLOYEES: Employee[] = [
+  { id: "1", name: "John Doe", email: "john@meetingmind.com", role: "admin" },
+  { id: "2", name: "Sarah Chen", email: "sarah@meetingmind.com", role: "employee" },
+  { id: "3", name: "Mike Ross", email: "mike@meetingmind.com", role: "employee" },
+  { id: "4", name: "Emily Park", email: "emily@meetingmind.com", role: "employee" },
+];
+
 const platformStats = [
   { label: "Total Users", value: "24", icon: Users, change: "+3" },
   { label: "Meetings Processed", value: "312", icon: FileText, change: "+28" },
@@ -19,8 +33,9 @@ const platformStats = [
 ];
 
 const AdminDashboard = () => {
-  const { user, companyEmployees, addEmployee, removeEmployee } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [employees, setEmployees] = useState<Employee[]>(MOCK_EMPLOYEES);
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
 
@@ -29,14 +44,14 @@ const AdminDashboard = () => {
       toast({ title: "Error", description: "Please fill in both name and email.", variant: "destructive" });
       return;
     }
-    addEmployee({ name: inviteName.trim(), email: inviteEmail.trim(), role: "employee" });
+    setEmployees((prev) => [...prev, { id: "emp-" + Date.now(), name: inviteName.trim(), email: inviteEmail.trim(), role: "employee" }]);
     toast({ title: "Employee added", description: `${inviteName} has been added to ${user?.companyName}.` });
     setInviteName("");
     setInviteEmail("");
   };
 
   const handleRemove = (id: string, name: string) => {
-    removeEmployee(id);
+    setEmployees((prev) => prev.filter((e) => e.id !== id));
     toast({ title: "Employee removed", description: `${name} has been removed.` });
   };
 
@@ -50,15 +65,9 @@ const AdminDashboard = () => {
           </p>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {platformStats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Card className="p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
@@ -73,7 +82,6 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="users">
           <TabsList>
             <TabsTrigger value="users">Employees</TabsTrigger>
@@ -84,12 +92,10 @@ const AdminDashboard = () => {
           <TabsContent value="users" className="mt-4">
             <Card className="shadow-sm">
               <div className="p-4 border-b border-border flex items-center justify-between">
-                <h3 className="text-sm font-semibold">
-                  Team Members ({companyEmployees.length})
-                </h3>
+                <h3 className="text-sm font-semibold">Team Members ({employees.length})</h3>
               </div>
               <div className="divide-y divide-border">
-                {companyEmployees.map((emp) => (
+                {employees.map((emp) => (
                   <div key={emp.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent">
@@ -103,16 +109,9 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge variant={emp.role === "admin" ? "default" : "secondary"} className="text-xs capitalize">
-                        {emp.role}
-                      </Badge>
+                      <Badge variant={emp.role === "admin" ? "default" : "secondary"} className="text-xs capitalize">{emp.role}</Badge>
                       {emp.role !== "admin" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleRemove(emp.id, emp.name)}
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleRemove(emp.id, emp.name)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
@@ -132,30 +131,16 @@ const AdminDashboard = () => {
               <div className="space-y-4 max-w-md">
                 <div>
                   <Label htmlFor="invite-name">Full Name</Label>
-                  <Input
-                    id="invite-name"
-                    placeholder="e.g. Jane Smith"
-                    className="mt-1.5"
-                    value={inviteName}
-                    onChange={(e) => setInviteName(e.target.value)}
-                  />
+                  <Input id="invite-name" placeholder="e.g. Jane Smith" className="mt-1.5" value={inviteName} onChange={(e) => setInviteName(e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="invite-email">Email Address</Label>
                   <div className="relative mt-1.5">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="invite-email"
-                      placeholder="jane@company.com"
-                      className="pl-9"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                    />
+                    <Input id="invite-email" placeholder="jane@company.com" className="pl-9" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
                   </div>
                 </div>
-                <Button onClick={handleInvite}>
-                  <UserPlus className="h-4 w-4 mr-2" /> Add Employee
-                </Button>
+                <Button onClick={handleInvite}><UserPlus className="h-4 w-4 mr-2" /> Add Employee</Button>
               </div>
             </Card>
           </TabsContent>

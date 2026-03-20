@@ -10,6 +10,12 @@ import { FileText, Search, Eye, MoreHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
+const MOCK_COMPANIES = [
+  { id: "comp-1", name: "MeetingMind Inc." },
+  { id: "comp-2", name: "Acme Corp" },
+  { id: "comp-3", name: "TechStart Ltd" },
+];
+
 const allMeetings = [
   { id: 1, title: "Sprint Planning Q1", date: "Mar 8, 2026", organizer: "John Doe", participants: 6, status: "Summarized", company: "MeetingMind Inc.", companyId: "comp-1" },
   { id: 2, title: "Design Review — Mobile App", date: "Mar 7, 2026", organizer: "Sarah Chen", participants: 4, status: "Processing", company: "MeetingMind Inc.", companyId: "comp-1" },
@@ -23,27 +29,23 @@ const allMeetings = [
 
 const Meetings = () => {
   const navigate = useNavigate();
-  const { user, companies } = useAuth();
+  const { user } = useAuth();
   const role = user?.role || "employee";
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
 
   let filtered = allMeetings;
 
-  // Role-based filtering
   if (role === "admin") {
     filtered = filtered.filter((m) => m.companyId === user?.companyId);
   } else if (role === "employee") {
-    // Employee sees meetings they organized or participated in (mock: show first 4)
     filtered = filtered.filter((m) => m.companyId === user?.companyId).slice(0, 4);
   }
 
-  // Company filter (SuperAdmin only)
   if (role === "superadmin" && companyFilter !== "all") {
     filtered = filtered.filter((m) => m.companyId === companyFilter);
   }
 
-  // Search
   if (search) {
     filtered = filtered.filter((m) =>
       m.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -61,12 +63,10 @@ const Meetings = () => {
           <div className="flex items-center gap-2">
             {role === "superadmin" && (
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
-                <SelectTrigger className="w-48 h-9">
-                  <SelectValue placeholder="All Companies" />
-                </SelectTrigger>
+                <SelectTrigger className="w-48 h-9"><SelectValue placeholder="All Companies" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Companies</SelectItem>
-                  {companies.map((c) => (
+                  {MOCK_COMPANIES.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -74,12 +74,7 @@ const Meetings = () => {
             )}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search meetings..."
-                className="pl-9 w-64 h-9"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <Input placeholder="Search meetings..." className="pl-9 w-64 h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
           </div>
         </div>
@@ -107,11 +102,7 @@ const Meetings = () => {
                 </TableRow>
               ) : (
                 filtered.map((meeting) => (
-                  <TableRow
-                    key={meeting.id}
-                    className="cursor-pointer"
-                    onClick={() => navigate(`/meetings/${meeting.id}`)}
-                  >
+                  <TableRow key={meeting.id} className="cursor-pointer" onClick={() => navigate(`/meetings/${meeting.id}`)}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
@@ -122,32 +113,17 @@ const Meetings = () => {
                     <TableCell>{meeting.organizer}</TableCell>
                     <TableCell className="text-center">{meeting.participants}</TableCell>
                     {role === "superadmin" && (
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">{meeting.company}</Badge>
-                      </TableCell>
+                      <TableCell><Badge variant="outline" className="text-xs">{meeting.company}</Badge></TableCell>
                     )}
                     <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${
-                          meeting.status === "Summarized"
-                            ? "bg-success/10 text-success"
-                            : meeting.status === "Processing"
-                            ? "bg-warning/10 text-warning"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
+                      <Badge variant="secondary" className={`text-xs ${meeting.status === "Summarized" ? "bg-success/10 text-success" : meeting.status === "Processing" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}`}>
                         {meeting.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); navigate(`/meetings/${meeting.id}`); }}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); navigate(`/meetings/${meeting.id}`); }}><Eye className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
