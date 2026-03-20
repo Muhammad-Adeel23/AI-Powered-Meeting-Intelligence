@@ -47,7 +47,7 @@ const mainItems: NavItem[] = [
 ];
 
 const secondaryItems: NavItem[] = [
-  { title: "Email Templates", url: "/email-templates", icon: Mail, roles: ["superadmin"] },
+  { title: "Email Templates", url: "/email-templates", icon: FileText, roles: ["superadmin"] },
   { title: "System Settings", url: "/system-settings", icon: Shield, roles: ["superadmin"] },
   { title: "Company Settings", url: "/company-settings", icon: Cog, roles: ["admin"] },
   { title: "Settings", url: "/settings", icon: Settings, roles: ["admin", "employee"] },
