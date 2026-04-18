@@ -7,6 +7,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles, Copy, Mail, Users, Clock, FileText, ArrowLeft, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { EmailEditor } from "@/components/email/EmailEditor";
+import { useState, useEffect } from "react";
+
 
 const transcript = [
   { time: "00:00", speaker: "John Doe", text: "Alright everyone, let's kick off the sprint planning for Q1. We have some ambitious goals this quarter." },
@@ -38,7 +41,16 @@ const actionItems = [
 
 const MeetingDetails = () => {
   const navigate = useNavigate();
+const [emailInsight, setEmailInsight] = useState<any>(null);
 
+  useEffect(() => {
+    setEmailInsight({
+      toEmails: ["team@company.com"],
+      ccEmails: ["manager@company.com"],
+      subject: "Sprint Planning Follow-up",
+      body: "This is AI generated email body..."
+    });
+  }, []);
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -62,6 +74,7 @@ const MeetingDetails = () => {
             <TabsTrigger value="transcript">Transcript</TabsTrigger>
             <TabsTrigger value="summary">AI Summary</TabsTrigger>
             <TabsTrigger value="actions">Action Items</TabsTrigger>
+              <TabsTrigger value="email">Email Insight</TabsTrigger>
           </TabsList>
 
           {/* Transcript Tab */}
@@ -151,6 +164,21 @@ const MeetingDetails = () => {
               ))}
             </Card>
           </TabsContent>
+  {/* <EmailEditor
+  emailData={{
+    toEmails: emailInsight?.toEmails,
+    ccEmails: emailInsight?.ccEmails,
+    subject: emailInsight?.subject,
+    body: emailInsight?.body
+  }}
+/> */
+<TabsContent value="email">
+  <EmailEditor
+    emailData={emailInsight}
+  />
+</TabsContent>
+}
+
         </Tabs>
       </div>
     </AppLayout>

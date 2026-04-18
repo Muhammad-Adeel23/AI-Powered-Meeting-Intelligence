@@ -86,7 +86,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-sidebar-accent-foreground">
+              <span className="text-sm font-bold tracking-tight text-gray-900">
                 MeetingMind
               </span>
               {user?.companyName && (
@@ -116,8 +116,7 @@ export function AppSidebar() {
                       to={item.url}
                       end
                       className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    >
+activeClassName="font-medium"                    >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -142,7 +141,7 @@ export function AppSidebar() {
                         to={item.url}
                         end
                         className="hover:bg-sidebar-accent"
-                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+activeClassName="font-semibold"
                       >
                         <item.icon className="mr-2 h-4 w-4" />
                         {!collapsed && <span>{item.title}</span>}
