@@ -16,18 +16,22 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface AuthUser {
-  id: number;
-  fullName: string;
-  email: string;
-  role: string;
-  companyId: number | null;
-  companyName: string | null;
+// Backend role type codes
+export enum RoleType {
+  SystemAdmin = 400001,
+  CompanyAdmin = 400002,
+  Employee = 400003,
 }
 
+// Raw login response data from /authenticate/login
 export interface LoginResponseData {
+  fullName: string;
+  roleName: string;
+  roleType: number;
+  email: string;
   token: string;
-  user: AuthUser;
+  companyId: number | null;
+  companyName: string | null;
 }
 
 export interface CreateUserRequest {

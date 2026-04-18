@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { loginUser, signupUser } from "@/services/authService";
 import { TOKEN_KEY } from "@/config/api";
-import type { User, UserRole } from "@/models";
+import { mapRoleTypeToUserRole } from "@/lib/roles";
+import type { User, UserRole, LoginResponseData } from "@/models";
 
 export type { User, UserRole } from "@/models";
 
@@ -18,6 +19,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_USER_KEY = "mm_auth_user";
 
+function mapLoginResponseToUser(res: LoginResponseData): User {
+  return {
+    id: res.email, // backend doesn't return numeric id on login; use email as stable key
+    name: res.fullName,
+    email: res.email,
+    role: mapRoleTypeToUserRole(res.roleType),
+    plan: "Starter",
+    companyId: res.companyId != null ? String(res.companyId) : undefined,
+    companyName: res.companyName || undefined,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem(AUTH_USER_KEY);
@@ -32,38 +45,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const res = await loginUser(email, password);
     localStorage.setItem(TOKEN_KEY, res.token);
-    persistUser({
-      id: String(res.user.id),
-      name: res.user.fullName,
-      email: res.user.email,
-      role: res.user.role as UserRole,
-      plan: "Starter",
-      companyId: res.user.companyId ? String(res.user.companyId) : undefined,
-      companyName: res.user.companyName || undefined,
-    });
+    persistUser(mapLoginResponseToUser(res));
   }, []);
 
   const signup = useCallback(async (name: string, email: string, password: string, companyName: string) => {
     // Backend SignupUser only returns { userId }. Auto-login after signup to obtain JWT and user details.
     await signupUser({ companyName, fullName: name, email, password });
     try {
-      await loginAfterSignup(email, password);
+      const res = await loginUser(email, password);
+      localStorage.setItem(TOKEN_KEY, res.token);
+      persistUser(mapLoginResponseToUser(res));
     } catch {
       // If auto-login fails, signup still succeeded — caller can redirect to /login
-    }
-
-    async function loginAfterSignup(em: string, pw: string) {
-      const res = await loginUser(em, pw);
-      localStorage.setItem(TOKEN_KEY, res.token);
-      persistUser({
-        id: String(res.user.id),
-        name: res.user.fullName,
-        email: res.user.email,
-        role: res.user.role as UserRole,
-        plan: "Starter",
-        companyId: res.user.companyId ? String(res.user.companyId) : undefined,
-        companyName: res.user.companyName || undefined,
-      });
     }
   }, []);
 
