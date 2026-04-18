@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://career-nexus.runasp.net";
+  import.meta.env.VITE_API_BASE_URL || "https://meetingmastermind.runasp.net";
 
 // Debug: Log API configuration (only in development)
 if (import.meta.env.DEV) {
@@ -17,36 +17,38 @@ export const TOKEN_KEY =
 export const WHATSAPP_NUMBER =
   import.meta.env.VITE_WHATSAPP_NUMBER || "923008974168";
 
-// API Endpoints
+// API Endpoints (versioned under /api/v1)
+const API_V1 = `${API_BASE_URL}/api/v1`;
+
 export const API_ENDPOINTS = {
   // Authentication
-  LOGIN: `${API_BASE_URL}/api/Account/login`,
-  REGISTER: `${API_BASE_URL}/api/Account/Register`,
-  FORGOT_PASSWORD: `${API_BASE_URL}/api/Account/ForgotPassword`,
-  CHANGE_PASSWORD: `${API_BASE_URL}/api/Account/ChangePassword`,
-  CREATE_USER: `${API_BASE_URL}/api/Account/CreateUser`,
+  SIGNUP_USER: `${API_V1}/account/SignupUser`,
+  LOGIN: `${API_V1}/account/login`,
+  FORGOT_PASSWORD: `${API_V1}/account/ForgotPassword`,
+  CHANGE_PASSWORD: `${API_V1}/account/ChangePassword`,
+  CREATE_USER: `${API_V1}/account/CreateUser`,
 
   // Meetings
-  MEETINGS: `${API_BASE_URL}/api/Meeting`,
-  UPLOAD_MEETING: `${API_BASE_URL}/api/Meeting/Upload`,
+  MEETINGS: `${API_V1}/Meeting`,
+  UPLOAD_MEETING: `${API_V1}/Meeting/Upload`,
 
   // Companies
-  COMPANIES: `${API_BASE_URL}/api/Company`,
+  COMPANIES: `${API_V1}/Company`,
 
   // Users
-  USERS: `${API_BASE_URL}/api/User`,
+  USERS: `${API_V1}/User`,
 
   // AI
-  AI_SUMMARY: `${API_BASE_URL}/api/AI/Summary`,
-  AI_ACTION_ITEMS: `${API_BASE_URL}/api/AI/ActionItems`,
-  AI_TRANSCRIPT: `${API_BASE_URL}/api/AI/Transcript`,
+  AI_SUMMARY: `${API_V1}/AI/Summary`,
+  AI_ACTION_ITEMS: `${API_V1}/AI/ActionItems`,
+  AI_TRANSCRIPT: `${API_V1}/AI/Transcript`,
 
   // Email
-  EMAIL_TEMPLATES: `${API_BASE_URL}/api/EmailTemplate`,
-  SEND_EMAIL: `${API_BASE_URL}/api/Email/Send`,
+  EMAIL_TEMPLATES: `${API_V1}/EmailTemplate`,
+  SEND_EMAIL: `${API_V1}/Email/Send`,
 
   // System
-  SYSTEM_SETTINGS: `${API_BASE_URL}/api/SystemSettings`,
-  NOTIFICATIONS: `${API_BASE_URL}/api/Notification`,
-  DASHBOARD: `${API_BASE_URL}/api/Dashboard`,
+  SYSTEM_SETTINGS: `${API_V1}/SystemSettings`,
+  NOTIFICATIONS: `${API_V1}/Notification`,
+  DASHBOARD: `${API_V1}/Dashboard`,
 };

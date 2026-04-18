@@ -1,93 +1,27 @@
-import { API_ENDPOINTS, TOKEN_KEY } from "@/config/api";
+import { API_ENDPOINTS } from "@/config/api";
+import { httpClient } from "./httpClient";
+import type {
+  SignupUserRequest,
+  SignupUserData,
+  LoginResponseData,
+  CreateUserRequest,
+  CreateUserData,
+  ChangePasswordRequest,
+  ChangePasswordData,
+} from "@/models";
 
-export interface LoginResponse {
-  token: string;
-  user: {
-    id: number;
-    fullName: string;
-    email: string;
-    role: string;
-    companyId: number | null;
-    companyName: string | null;
-  };
+export function loginUser(email: string, password: string): Promise<LoginResponseData> {
+  return httpClient.post<LoginResponseData>(API_ENDPOINTS.LOGIN, { email, password });
 }
 
-export interface RegisterRequest {
-  companyName: string;
-  fullName: string;
-  email: string;
-  password: string;
+export function signupUser(data: SignupUserRequest): Promise<SignupUserData> {
+  return httpClient.post<SignupUserData>(API_ENDPOINTS.SIGNUP_USER, data);
 }
 
-export interface CreateUserRequest {
-  userName: string;
-  email: string;
-  fullName: string;
-  companyId: number;
-  roleId: number;
+export function createUser(data: CreateUserRequest): Promise<CreateUserData> {
+  return httpClient.post<CreateUserData>(API_ENDPOINTS.CREATE_USER, data, { auth: true });
 }
 
-export interface ChangePasswordRequest {
-  oldPassword: string;
-  newPassword: string;
-}
-
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem(TOKEN_KEY);
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
-export async function loginUser(email: string, password: string): Promise<LoginResponse> {
-  const res = await fetch(API_ENDPOINTS.LOGIN, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Invalid credentials");
-  }
-  return res.json();
-}
-
-export async function registerCompany(data: RegisterRequest): Promise<LoginResponse> {
-  const res = await fetch(API_ENDPOINTS.REGISTER, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Registration failed");
-  }
-  return res.json();
-}
-
-export async function createUser(data: CreateUserRequest): Promise<{ success: boolean; userId: number; tempPassword: string }> {
-  const res = await fetch(API_ENDPOINTS.CREATE_USER, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Failed to create user");
-  }
-  return res.json();
-}
-
-export async function changePassword(data: ChangePasswordRequest): Promise<{ success: boolean; message: string }> {
-  const res = await fetch(API_ENDPOINTS.CHANGE_PASSWORD, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Failed to change password");
-  }
-  return res.json();
+export function changePassword(data: ChangePasswordRequest): Promise<ChangePasswordData> {
+  return httpClient.post<ChangePasswordData>(API_ENDPOINTS.CHANGE_PASSWORD, data, { auth: true });
 }

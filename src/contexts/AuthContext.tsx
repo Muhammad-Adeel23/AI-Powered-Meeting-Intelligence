@@ -1,19 +1,9 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { loginUser, registerCompany } from "@/services/authService";
+import { loginUser, signupUser } from "@/services/authService";
 import { TOKEN_KEY } from "@/config/api";
+import type { User, UserRole } from "@/models";
 
-export type UserRole = "superadmin" | "admin" | "employee";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  plan: string;
-  role: UserRole;
-  companyId?: string;
-  companyName?: string;
-}
+export type { User, UserRole } from "@/models";
 
 interface AuthContextType {
   user: User | null;
@@ -26,16 +16,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const AUTH_USER_KEY = "mm_auth_user";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem("mm_auth_user");
+    const saved = localStorage.getItem(AUTH_USER_KEY);
     return saved ? JSON.parse(saved) : null;
   });
+
+  const persistUser = (mapped: User) => {
+    setUser(mapped);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(mapped));
+  };
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await loginUser(email, password);
     localStorage.setItem(TOKEN_KEY, res.token);
-    const mapped: User = {
+    persistUser({
       id: String(res.user.id),
       name: res.user.fullName,
       email: res.user.email,
@@ -43,30 +40,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       plan: "Starter",
       companyId: res.user.companyId ? String(res.user.companyId) : undefined,
       companyName: res.user.companyName || undefined,
-    };
-    setUser(mapped);
-    localStorage.setItem("mm_auth_user", JSON.stringify(mapped));
+    });
   }, []);
 
   const signup = useCallback(async (name: string, email: string, password: string, companyName: string) => {
-    const res = await registerCompany({ companyName, fullName: name, email, password });
-    localStorage.setItem(TOKEN_KEY, res.token);
-    const mapped: User = {
-      id: String(res.user.id),
-      name: res.user.fullName,
-      email: res.user.email,
-      role: res.user.role as UserRole,
-      plan: "Starter",
-      companyId: res.user.companyId ? String(res.user.companyId) : undefined,
-      companyName: res.user.companyName || undefined,
-    };
-    setUser(mapped);
-    localStorage.setItem("mm_auth_user", JSON.stringify(mapped));
+    // Backend SignupUser only returns { userId }. Auto-login after signup to obtain JWT and user details.
+    await signupUser({ companyName, fullName: name, email, password });
+    try {
+      await loginAfterSignup(email, password);
+    } catch {
+      // If auto-login fails, signup still succeeded — caller can redirect to /login
+    }
+
+    async function loginAfterSignup(em: string, pw: string) {
+      const res = await loginUser(em, pw);
+      localStorage.setItem(TOKEN_KEY, res.token);
+      persistUser({
+        id: String(res.user.id),
+        name: res.user.fullName,
+        email: res.user.email,
+        role: res.user.role as UserRole,
+        plan: "Starter",
+        companyId: res.user.companyId ? String(res.user.companyId) : undefined,
+        companyName: res.user.companyName || undefined,
+      });
+    }
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem("mm_auth_user");
+    localStorage.removeItem(AUTH_USER_KEY);
     localStorage.removeItem(TOKEN_KEY);
   }, []);
 
@@ -74,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, ...data };
-      localStorage.setItem("mm_auth_user", JSON.stringify(updated));
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(updated));
       return updated;
     });
   }, []);
