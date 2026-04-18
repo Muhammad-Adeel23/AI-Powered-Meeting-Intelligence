@@ -23,7 +23,7 @@ const API_V1 = `${API_BASE_URL}/api/v1`;
 export const API_ENDPOINTS = {
   // Authentication
   SIGNUP_USER: `${API_V1}/account/SignupUser`,
-  LOGIN: `${API_V1}/account/login`,
+  LOGIN: `${API_V1}/authenticate/login`,
   FORGOT_PASSWORD: `${API_V1}/account/ForgotPassword`,
   CHANGE_PASSWORD: `${API_V1}/account/ChangePassword`,
   CREATE_USER: `${API_V1}/account/CreateUser`,

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255),
@@ -21,7 +21,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { toast } = useToast();
+  
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,10 +34,10 @@ const Login = () => {
     setIsLoading(true);
     try {
       await login(values.email, values.password);
-      toast({ title: "Welcome back!", description: "You've been signed in successfully." });
+      toast.success("Welcome back!", { description: "You've been signed in successfully." });
       navigate("/dashboard");
     } catch (err: any) {
-      toast({ title: "Error", description: err?.message || "Invalid credentials.", variant: "destructive" });
+      toast.error("Login failed", { description: err?.message || "Invalid email or password." });
     } finally {
       setIsLoading(false);
     }

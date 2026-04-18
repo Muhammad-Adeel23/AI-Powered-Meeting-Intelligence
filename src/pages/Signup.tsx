@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const signupSchema = z.object({
   companyName: z.string().trim().min(2, "Company name must be at least 2 characters").max(100),
@@ -28,7 +28,7 @@ type SignupValues = z.infer<typeof signupSchema>;
 const Signup = () => {
   const navigate = useNavigate();
   const { signup } = useAuth();
-  const { toast } = useToast();
+  
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,10 +41,10 @@ const Signup = () => {
     setIsLoading(true);
     try {
       await signup(values.name, values.email, values.password, values.companyName);
-      toast({ title: "Account created!", description: `Welcome to MeetingMind. Your company "${values.companyName}" has been set up.` });
+      toast.success("Account created!", { description: `Welcome to MeetingMind. Your company "${values.companyName}" has been set up.` });
       navigate("/dashboard");
     } catch (err: any) {
-      toast({ title: "Error", description: err?.message || "Could not create account.", variant: "destructive" });
+      toast.error("Signup failed", { description: err?.message || "Could not create account." });
     } finally {
       setIsLoading(false);
     }
