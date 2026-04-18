@@ -8,14 +8,9 @@
   :root {
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-    --background: 0 0% 99%;
-    --foreground: 230 25% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 230 25% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 230 25% 10%;
+--background: 230 20% 98%;   /* softer white */
+--card: 230 20% 97%;
+--popover: 230 20% 97%;
 
     --primary: 234 80% 58%;
     --primary-foreground: 0 0% 100%;
@@ -44,19 +39,19 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 230 25% 8%;
-    --sidebar-foreground: 230 10% 75%;
-    --sidebar-primary: 234 80% 62%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 230 20% 14%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 230 20% 16%;
-    --sidebar-ring: 234 80% 58%;
-    --sidebar-muted: 230 10% 45%;
+--sidebar-background: 210 40% 97%;   
+--sidebar-foreground: 230 10% 15%;       /* dark enough to read */
+--sidebar-primary: 234 80% 58%;          /* blue hover background */
+--sidebar-primary-foreground: 0 0% 100%; /* white text on blue */
+--sidebar-accent: 234 80% 52%;           /* slightly darker blue for accent */
+--sidebar-accent-foreground: 0 0% 100%;  /* white text */
+--sidebar-border: 210 30% 85%;  /* light gray border */
+--sidebar-ring: 0 0% 0% / 0.05;        /* keep same */
+--sidebar-muted: 230 10% 45%;         /* keep same */
 
     --gradient-primary: linear-gradient(135deg, hsl(234 80% 58%), hsl(260 70% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(230 25% 6%), hsl(234 40% 18%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(230 15% 98%));
+--gradient-card: linear-gradient(180deg, hsl(230 20% 97%), hsl(230 20% 95%));
+--gradient-hero: linear-gradient(135deg, hsl(230 25% 8%), hsl(234 35% 18%));
     --gradient-accent: linear-gradient(135deg, hsl(234 80% 96%), hsl(260 70% 95%));
 
     --shadow-sm: 0 1px 2px 0 hsl(230 25% 10% / 0.04);
