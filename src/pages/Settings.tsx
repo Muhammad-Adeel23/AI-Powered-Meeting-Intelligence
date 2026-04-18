@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
+import { changePassword } from "@/services/authService";
 
 const profileSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
@@ -50,10 +52,22 @@ const Settings = () => {
     toast({ title: "Profile updated", description: "Your changes have been saved." });
   };
 
-  const onPasswordSubmit = async (_values: PasswordValues) => {
-    await new Promise((r) => setTimeout(r, 500));
-    toast({ title: "Password changed", description: "Your password has been updated successfully." });
-    passwordForm.reset();
+  const onPasswordSubmit = async (values: PasswordValues) => {
+    if (!values.currentPassword.trim() || !values.newPassword.trim()) {
+      sonnerToast.error("Please fill in both password fields.");
+      return;
+    }
+    try {
+      await changePassword({
+        oldPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      });
+      sonnerToast.success("Password changed successfully.");
+      passwordForm.reset();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Current password is incorrect.";
+      sonnerToast.error(message);
+    }
   };
 
   const initials = user?.name
