@@ -42,7 +42,7 @@ const Signup = () => {
     try {
       await signup(values.name, values.email, values.password, values.companyName);
       toast.success("Account created!", { description: `Welcome to MeetingMind. Your company "${values.companyName}" has been set up.` });
-      navigate("/dashboard");
+      navigate("/Login");
     } catch (err: any) {
       toast.error("Signup failed", { description: err?.message || "Could not create account." });
     } finally {
