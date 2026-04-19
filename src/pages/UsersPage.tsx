@@ -53,6 +53,21 @@ const UsersPage = () => {
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("employee");
   const [newCompanyId, setNewCompanyId] = useState(user?.companyId || "");
+  const [roleOptions, setRoleOptions] = useState<UserRoleDropdownItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getUserRoleDropdown()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setRoleOptions(data);
+      })
+      .catch((err) => {
+        sonnerToast.error(err instanceof Error ? err.message : "Failed to load roles");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   let filtered = allUsers;
 
