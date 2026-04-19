@@ -163,10 +163,23 @@ const UsersPage = () => {
                   <div>
                     <Label>Role</Label>
                     <Select value={newRole} onValueChange={(v) => setNewRole(v as UserRole)}>
-                      <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select role" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="employee">Employee</SelectItem>
+                        {roleOptions.length === 0 ? (
+                          <>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="employee">Employee</SelectItem>
+                          </>
+                        ) : (
+                          roleOptions.map((r) => {
+                            const internal: UserRole = r.roleName.toLowerCase().includes("admin") ? "admin" : "employee";
+                            return (
+                              <SelectItem key={r.roleType} value={internal}>
+                                {r.roleName}
+                              </SelectItem>
+                            );
+                          })
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
