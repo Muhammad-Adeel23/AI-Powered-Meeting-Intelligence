@@ -11,6 +11,7 @@ import {
   Users,
   Cog,
 } from "lucide-react";
+import appIcon from "@/assets/app-icon.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -81,8 +82,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
-            <Sparkles className="h-4 w-4 text-sidebar-primary-foreground" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+            <img src={appIcon} alt="MeetingMind logo" className="h-full w-full object-cover" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
