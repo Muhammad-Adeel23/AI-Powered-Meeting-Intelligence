@@ -1,10 +1,24 @@
 import { API_ENDPOINTS } from "@/config/api";
 import { httpClient } from "./httpClient";
-import type { UserRoleDropdownItem } from "@/models";
+import type {
+  UserRoleDropdownItem,
+  AddCompanyUserRequest,
+  AddCompanyUserData,
+} from "@/models";
 
 export function getUserRoleDropdown(): Promise<UserRoleDropdownItem[]> {
   return httpClient.get<UserRoleDropdownItem[]>(
     `${API_ENDPOINTS.USERS}/GetUserRoleDropdown`,
+    { auth: true }
+  );
+}
+
+export function addCompanyUser(
+  data: AddCompanyUserRequest
+): Promise<AddCompanyUserData> {
+  return httpClient.post<AddCompanyUserData>(
+    `${API_ENDPOINTS.USERS}/AddCompanyUsers`,
+    data,
     { auth: true }
   );
 }
