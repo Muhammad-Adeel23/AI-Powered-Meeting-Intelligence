@@ -12,8 +12,10 @@ import { Users, Plus, Search, Trash2, Mail, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import { getUserRoleDropdown } from "@/services/userService";
+import { getUserRoleDropdown, addCompanyUser } from "@/services/userService";
 import type { UserRole, UserRoleDropdownItem } from "@/models";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface UserEntry {
   id: string;
@@ -52,8 +54,10 @@ const UsersPage = () => {
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("employee");
+  const [newRoleId, setNewRoleId] = useState<number | null>(null);
   const [newCompanyId, setNewCompanyId] = useState(user?.companyId || "");
   const [roleOptions, setRoleOptions] = useState<UserRoleDropdownItem[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,23 +90,54 @@ const UsersPage = () => {
     );
   }
 
-  const handleAdd = () => {
-    if (!newName.trim() || !newEmail.trim()) return;
-    const companyName = role === "superadmin"
-      ? MOCK_COMPANIES.find((c) => c.id === newCompanyId)?.name
-      : user?.companyName;
-    setAllUsers((prev) => [...prev, {
-      id: "usr-" + Date.now(),
-      name: newName.trim(),
-      email: newEmail.trim(),
-      role: newRole,
-      companyId: role === "superadmin" ? newCompanyId : user?.companyId,
-      companyName,
-    }]);
-    toast({ title: "User added", description: `${newName} has been added.` });
-    setNewName("");
-    setNewEmail("");
-    setDialogOpen(false);
+  const handleAdd = async () => {
+    const trimmedName = newName.trim();
+    const trimmedEmail = newEmail.trim();
+
+    if (!trimmedName) {
+      sonnerToast.error("Full name is required.");
+      return;
+    }
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      sonnerToast.error("Please enter a valid email address.");
+      return;
+    }
+    if (newRoleId === null || newRoleId === undefined) {
+      sonnerToast.error("Please select a role.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await addCompanyUser({
+        fullname: trimmedName,
+        email: trimmedEmail,
+        roleId: newRoleId,
+      });
+      sonnerToast.success(
+        "User has been successfully added. Login credentials have been sent to the registered email address"
+      );
+
+      const companyName = role === "superadmin"
+        ? MOCK_COMPANIES.find((c) => c.id === newCompanyId)?.name
+        : user?.companyName;
+      setAllUsers((prev) => [...prev, {
+        id: "usr-" + Date.now(),
+        name: trimmedName,
+        email: trimmedEmail,
+        role: newRole,
+        companyId: role === "superadmin" ? newCompanyId : user?.companyId,
+        companyName,
+      }]);
+      setNewName("");
+      setNewEmail("");
+      setNewRoleId(null);
+      setDialogOpen(false);
+    } catch (err) {
+      sonnerToast.error(err instanceof Error ? err.message : "Failed to add user.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleRemove = (id: string, name: string) => {
