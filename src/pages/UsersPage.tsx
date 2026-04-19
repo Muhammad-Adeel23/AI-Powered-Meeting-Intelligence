@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Users, Plus, Search, Trash2, Mail, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import type { UserRole } from "@/contexts/AuthContext";
+import { toast as sonnerToast } from "sonner";
+import { getUserRoleDropdown } from "@/services/userService";
+import type { UserRole, UserRoleDropdownItem } from "@/models";
 
 interface UserEntry {
   id: string;
@@ -51,6 +53,21 @@ const UsersPage = () => {
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("employee");
   const [newCompanyId, setNewCompanyId] = useState(user?.companyId || "");
+  const [roleOptions, setRoleOptions] = useState<UserRoleDropdownItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getUserRoleDropdown()
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setRoleOptions(data);
+      })
+      .catch((err) => {
+        sonnerToast.error(err instanceof Error ? err.message : "Failed to load roles");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   let filtered = allUsers;
 
@@ -146,10 +163,23 @@ const UsersPage = () => {
                   <div>
                     <Label>Role</Label>
                     <Select value={newRole} onValueChange={(v) => setNewRole(v as UserRole)}>
-                      <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select role" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="employee">Employee</SelectItem>
+                        {roleOptions.length === 0 ? (
+                          <>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="employee">Employee</SelectItem>
+                          </>
+                        ) : (
+                          roleOptions.map((r) => {
+                            const internal: UserRole = r.roleName.toLowerCase().includes("admin") ? "admin" : "employee";
+                            return (
+                              <SelectItem key={r.roleType} value={internal}>
+                                {r.roleName}
+                              </SelectItem>
+                            );
+                          })
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
