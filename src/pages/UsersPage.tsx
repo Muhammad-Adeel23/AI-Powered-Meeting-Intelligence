@@ -197,23 +197,28 @@ const UsersPage = () => {
                   </div>
                   <div>
                     <Label>Role</Label>
-                    <Select value={newRole} onValueChange={(v) => setNewRole(v as UserRole)}>
+                    <Select
+                      value={newRoleId !== null ? String(newRoleId) : ""}
+                      onValueChange={(v) => {
+                        const id = Number(v);
+                        setNewRoleId(id);
+                        const selected = roleOptions.find((r) => r.roleType === id);
+                        const internal: UserRole = selected?.roleName.toLowerCase().includes("admin")
+                          ? "admin"
+                          : "employee";
+                        setNewRole(internal);
+                      }}
+                    >
                       <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select role" /></SelectTrigger>
                       <SelectContent>
                         {roleOptions.length === 0 ? (
-                          <>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="employee">Employee</SelectItem>
-                          </>
+                          <SelectItem value="0" disabled>Loading roles...</SelectItem>
                         ) : (
-                          roleOptions.map((r) => {
-                            const internal: UserRole = r.roleName.toLowerCase().includes("admin") ? "admin" : "employee";
-                            return (
-                              <SelectItem key={r.roleType} value={internal}>
-                                {r.roleName}
-                              </SelectItem>
-                            );
-                          })
+                          roleOptions.map((r) => (
+                            <SelectItem key={r.roleType} value={String(r.roleType)}>
+                              {r.roleName}
+                            </SelectItem>
+                          ))
                         )}
                       </SelectContent>
                     </Select>
@@ -231,7 +236,9 @@ const UsersPage = () => {
                       </Select>
                     </div>
                   )}
-                  <Button onClick={handleAdd} className="w-full"><Plus className="h-4 w-4" /> Add User</Button>
+                  <Button onClick={handleAdd} disabled={submitting} className="w-full">
+                    <Plus className="h-4 w-4" /> {submitting ? "Adding..." : "Add User"}
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
