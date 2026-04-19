@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Users, Plus, Search, Trash2, Mail, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import type { UserRole } from "@/contexts/AuthContext";
+import { toast as sonnerToast } from "sonner";
+import { getUserRoleDropdown } from "@/services/userService";
+import type { UserRole, UserRoleDropdownItem } from "@/models";
 
 interface UserEntry {
   id: string;
