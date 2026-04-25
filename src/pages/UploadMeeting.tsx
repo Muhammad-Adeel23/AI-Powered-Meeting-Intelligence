@@ -102,9 +102,7 @@ const UploadMeeting = () => {
       toast.error("Please select a recording to upload.");
       return;
     }
-    const participantIds = selectedParticipants
-      .map((p) => Number(p.id))
-      .filter((n) => !Number.isNaN(n));
+    const participantIds = selectedParticipants.map((p) => p.id);
 
     setSubmitting(true);
     try {
