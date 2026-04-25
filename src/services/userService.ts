@@ -23,3 +23,10 @@ export function addCompanyUser(
     { auth: true }
   );
 }
+
+export function getCompanyUsers(): Promise<CompanyUser[]> {
+  return httpClient.get<CompanyUser[]>(
+    `${API_ENDPOINTS.USERS}/GetCompanyUsers`,
+    { auth: true }
+  );
+}
