@@ -136,7 +136,13 @@ const UploadMeeting = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="title">Meeting Title</Label>
-                <Input id="title" placeholder="e.g. Sprint Planning Q1" className="mt-1.5" />
+                <Input
+                  id="title"
+                  placeholder="e.g. Sprint Planning Q1"
+                  className="mt-1.5"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
               </div>
 
               <div ref={dropdownRef}>
@@ -186,14 +192,20 @@ const UploadMeeting = () => {
                   )}
                 </div>
               </div>
-
-              <div>
-                <Label htmlFor="notes">Additional Notes</Label>
-                <Textarea id="notes" placeholder="Any context for the AI..." className="mt-1.5" rows={3} />
-              </div>
             </div>
 
-            <Button variant="hero" className="w-full" disabled={!file}><UploadIcon className="h-4 w-4" /> Process with AI</Button>
+            <Button
+              variant="hero"
+              className="w-full"
+              disabled={!file || !title.trim() || submitting}
+              onClick={handleSubmit}
+            >
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</>
+              ) : (
+                <><UploadIcon className="h-4 w-4" /> Process with AI</>
+              )}
+            </Button>
           </Card>
         </motion.div>
       </div>
