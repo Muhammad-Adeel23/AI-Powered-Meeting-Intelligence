@@ -30,7 +30,7 @@ const UploadMeeting = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [companyEmployees, setCompanyEmployees] = useState<ParticipantOption[]>([]);
-  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [, setLoadingEmployees] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
