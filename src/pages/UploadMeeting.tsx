@@ -65,7 +65,7 @@ const UploadMeeting = () => {
       emp.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const toggleParticipant = (emp: CompanyEmployee) => {
+  const toggleParticipant = (emp: ParticipantOption) => {
     setSelectedParticipants((prev) =>
       prev.find((p) => p.id === emp.id)
         ? prev.filter((p) => p.id !== emp.id)
@@ -73,7 +73,7 @@ const UploadMeeting = () => {
     );
   };
 
-  const removeParticipant = (id: string) => {
+  const removeParticipant = (id: number) => {
     setSelectedParticipants((prev) => prev.filter((p) => p.id !== id));
   };
 
