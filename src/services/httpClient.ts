@@ -34,6 +34,28 @@ async function parseResponse<T>(res: Response): Promise<T> {
   return json as T;
 }
 
+async function parseFullResponse<T>(res: Response): Promise<ApiResponse<T>> {
+  const text = await res.text();
+  const json = text ? JSON.parse(text) : {};
+  if (json && typeof json === "object" && "isSuccess" in json) {
+    const wrapped = json as ApiResponse<T>;
+    if (!res.ok || !wrapped.isSuccess) {
+      throw new Error(wrapped.message || `Request failed (${res.status})`);
+    }
+    return wrapped;
+  }
+  if (!res.ok) {
+    const message = (json && (json.message || json.error)) || `Request failed (${res.status})`;
+    throw new Error(message);
+  }
+  return { statusCode: res.status, data: json as T, message: "", isSuccess: true };
+}
+
+function getAuthOnlyHeaders(): HeadersInit {
+  const token = localStorage.getItem(TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export const httpClient = {
   async post<T>(url: string, body: unknown, opts: RequestOptions = {}): Promise<T> {
     const res = await fetch(url, {
@@ -49,5 +71,14 @@ export const httpClient = {
       headers: opts.auth ? getAuthHeaders() : { "Content-Type": "application/json" },
     });
     return parseResponse<T>(res);
+  },
+  async postForm<T>(url: string, formData: FormData, opts: RequestOptions = {}): Promise<ApiResponse<T>> {
+    const res = await fetch(url, {
+      method: "POST",
+      // Do NOT set Content-Type — browser sets correct multipart boundary
+      headers: opts.auth ? getAuthOnlyHeaders() : {},
+      body: formData,
+    });
+    return parseFullResponse<T>(res);
   },
 };
