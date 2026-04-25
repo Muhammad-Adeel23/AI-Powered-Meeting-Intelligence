@@ -4,6 +4,7 @@ import type {
   UserRoleDropdownItem,
   AddCompanyUserRequest,
   AddCompanyUserData,
+  CompanyUser,
 } from "@/models";
 
 export function getUserRoleDropdown(): Promise<UserRoleDropdownItem[]> {
@@ -19,6 +20,13 @@ export function addCompanyUser(
   return httpClient.post<AddCompanyUserData>(
     `${API_ENDPOINTS.USERS}/AddCompanyUsers`,
     data,
+    { auth: true }
+  );
+}
+
+export function getCompanyUsers(): Promise<CompanyUser[]> {
+  return httpClient.get<CompanyUser[]>(
+    `${API_ENDPOINTS.USERS}/GetCompanyUsers`,
     { auth: true }
   );
 }

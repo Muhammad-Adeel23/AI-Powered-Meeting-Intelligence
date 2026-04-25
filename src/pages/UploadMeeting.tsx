@@ -10,20 +10,15 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { analyzeMeeting } from "@/services/meetingService";
+import { getCompanyUsers } from "@/services/userService";
+import type { CompanyUser } from "@/models";
 
-interface CompanyEmployee {
-  id: string;
+interface ParticipantOption {
+  id: number;
   name: string;
   email: string;
   role: string;
 }
-
-const MOCK_EMPLOYEES: CompanyEmployee[] = [
-  { id: "1", name: "John Doe", email: "john@meetingmind.com", role: "admin" },
-  { id: "2", name: "Sarah Chen", email: "sarah@meetingmind.com", role: "employee" },
-  { id: "3", name: "Mike Ross", email: "mike@meetingmind.com", role: "employee" },
-  { id: "4", name: "Emily Park", email: "emily@meetingmind.com", role: "employee" },
-];
 
 const UploadMeeting = () => {
   const navigate = useNavigate();
@@ -31,11 +26,38 @@ const UploadMeeting = () => {
   const [title, setTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [selectedParticipants, setSelectedParticipants] = useState<CompanyEmployee[]>([]);
+  const [selectedParticipants, setSelectedParticipants] = useState<ParticipantOption[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [companyEmployees, setCompanyEmployees] = useState<ParticipantOption[]>([]);
+  const [, setLoadingEmployees] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const companyEmployees = MOCK_EMPLOYEES;
+
+  useEffect(() => {
+    let active = true;
+    setLoadingEmployees(true);
+    getCompanyUsers()
+      .then((users) => {
+        if (!active) return;
+        const mapped: ParticipantOption[] = (users ?? []).map((u: CompanyUser) => ({
+          id: u.participantIds,
+          name: u.fullname,
+          email: u.email,
+          role: u.roleName,
+        }));
+        setCompanyEmployees(mapped);
+      })
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : "Failed to load employees.";
+        toast.error(message);
+      })
+      .finally(() => {
+        if (active) setLoadingEmployees(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredEmployees = companyEmployees.filter(
     (emp) =>
@@ -43,7 +65,7 @@ const UploadMeeting = () => {
       emp.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const toggleParticipant = (emp: CompanyEmployee) => {
+  const toggleParticipant = (emp: ParticipantOption) => {
     setSelectedParticipants((prev) =>
       prev.find((p) => p.id === emp.id)
         ? prev.filter((p) => p.id !== emp.id)
@@ -51,7 +73,7 @@ const UploadMeeting = () => {
     );
   };
 
-  const removeParticipant = (id: string) => {
+  const removeParticipant = (id: number) => {
     setSelectedParticipants((prev) => prev.filter((p) => p.id !== id));
   };
 
@@ -80,9 +102,7 @@ const UploadMeeting = () => {
       toast.error("Please select a recording to upload.");
       return;
     }
-    const participantIds = selectedParticipants
-      .map((p) => Number(p.id))
-      .filter((n) => !Number.isNaN(n));
+    const participantIds = selectedParticipants.map((p) => p.id);
 
     setSubmitting(true);
     try {
