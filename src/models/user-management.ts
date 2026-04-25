@@ -6,3 +6,11 @@ export interface AddCompanyUserRequest {
 }
 
 export type AddCompanyUserData = boolean;
+
+// Models for /User/GetCompanyUsers
+export interface CompanyUser {
+  participantIds: number;
+  fullname: string;
+  email: string;
+  roleName: string;
+}

@@ -4,6 +4,7 @@ import type {
   UserRoleDropdownItem,
   AddCompanyUserRequest,
   AddCompanyUserData,
+  CompanyUser,
 } from "@/models";
 
 export function getUserRoleDropdown(): Promise<UserRoleDropdownItem[]> {
