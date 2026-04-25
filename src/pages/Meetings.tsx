@@ -70,8 +70,7 @@ const Meetings = () => {
     setLoading(true);
     getAllMeetings({
       searchValue: debouncedSearch,
-      isGetAllData: false,
-      pageNumber: page,
+      pageNumber: Math.max(0, page - 1),
       pageSize: PAGE_SIZE,
     })
       .then((res) => {
