@@ -14,7 +14,6 @@ export interface MeetingUpdateEvent {
 
 export interface GetAllMeetingsRequest {
   searchValue: string;
-  isGetAllData: boolean;
   pageNumber: number;
   pageSize: number;
 }
