@@ -3,11 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Upload as UploadIcon, FileAudio, X, ChevronDown, Check } from "lucide-react";
+import { Upload as UploadIcon, FileAudio, X, ChevronDown, Check, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { analyzeMeeting } from "@/services/meetingService";
 
 interface CompanyEmployee {
   id: string;
@@ -24,7 +26,10 @@ const MOCK_EMPLOYEES: CompanyEmployee[] = [
 ];
 
 const UploadMeeting = () => {
+  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [selectedParticipants, setSelectedParticipants] = useState<CompanyEmployee[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -64,6 +69,32 @@ const UploadMeeting = () => {
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim()) {
+      toast.error("Meeting title is required.");
+      return;
+    }
+    if (!file) {
+      toast.error("Please select a recording to upload.");
+      return;
+    }
+    const participantIds = selectedParticipants
+      .map((p) => Number(p.id))
+      .filter((n) => !Number.isNaN(n));
+
+    setSubmitting(true);
+    try {
+      const res = await analyzeMeeting({ title: title.trim(), participantIds, file });
+      toast.success(res.message || "Meeting created successfully. AI insights are processing.");
+      navigate("/dashboard");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to upload meeting.";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
