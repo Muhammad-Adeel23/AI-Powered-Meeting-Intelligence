@@ -1,10 +1,14 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, CheckSquare, Sparkles, ArrowUpRight, Clock, Building2, Users, Activity, TrendingUp } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Upload, FileText, CheckSquare, Sparkles, ArrowUpRight, Clock, Building2, Users, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { startMeetingHub, onMeetingUpdate } from "@/services/meetingHub";
+import type { MeetingUpdateEvent, MeetingStatus } from "@/models/meeting";
 
 const superadminStats = [
   { label: "Total Companies", value: "3", icon: Building2, change: "+1" },
@@ -40,6 +44,30 @@ const Dashboard = () => {
   const role = user?.role || "employee";
 
   const stats = role === "superadmin" ? superadminStats : role === "admin" ? adminStats : employeeStats;
+
+  // Real-time meeting updates via SignalR (keyed by meetingId)
+  const [liveUpdates, setLiveUpdates] = useState<Record<number, { status: MeetingStatus; progress: number }>>({});
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
+
+    (async () => {
+      await startMeetingHub();
+      if (cancelled) return;
+      unsubscribe = onMeetingUpdate((event: MeetingUpdateEvent) => {
+        setLiveUpdates((prev) => ({
+          ...prev,
+          [event.meetingId]: { status: event.status, progress: event.progress },
+        }));
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   const greeting = role === "superadmin"
     ? "Platform overview and analytics."
