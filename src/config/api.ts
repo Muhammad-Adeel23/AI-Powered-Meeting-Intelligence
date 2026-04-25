@@ -31,6 +31,10 @@ export const API_ENDPOINTS = {
   // Meetings
   MEETINGS: `${API_V1}/Meeting`,
   UPLOAD_MEETING: `${API_V1}/Meeting/Upload`,
+  ANALYZE_MEETING: `${API_V1}/Meeting/AnalyzeMeeting`,
+
+  // SignalR
+  MEETING_HUB: `${API_BASE_URL}/hubs/meeting`,
 
   // Companies
   COMPANIES: `${API_V1}/Company`,
