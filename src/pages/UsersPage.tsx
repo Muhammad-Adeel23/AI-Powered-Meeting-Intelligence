@@ -68,6 +68,28 @@ const UsersPage = () => {
       .catch((err) => {
         sonnerToast.error(err instanceof Error ? err.message : "Failed to load roles");
       });
+    getAllUsers()
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) return;
+        const mapped: UserEntry[] = data.map((u, idx) => {
+          const roleLower = (u.role || "").toLowerCase();
+          const role: UserRole = roleLower.includes("super")
+            ? "superadmin"
+            : roleLower.includes("admin")
+            ? "admin"
+            : "employee";
+          return {
+            id: `${u.email || idx}`,
+            name: u.name,
+            email: u.email,
+            role,
+          };
+        });
+        setAllUsers(mapped);
+      })
+      .catch((err) => {
+        sonnerToast.error(err instanceof Error ? err.message : "Failed to load users");
+      });
     return () => {
       cancelled = true;
     };
