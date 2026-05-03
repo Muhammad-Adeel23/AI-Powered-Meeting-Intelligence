@@ -5,6 +5,7 @@ import type {
   AnalyzeMeetingRequest,
   GetAllMeetingsRequest,
   PagedMeetings,
+  MeetingDetailsData,
 } from "@/models/meeting";
 
 export function analyzeMeeting(payload: AnalyzeMeetingRequest): Promise<ApiResponse<number>> {
@@ -17,4 +18,11 @@ export function analyzeMeeting(payload: AnalyzeMeetingRequest): Promise<ApiRespo
 
 export function getAllMeetings(payload: GetAllMeetingsRequest): Promise<PagedMeetings> {
   return httpClient.post<PagedMeetings>(API_ENDPOINTS.GET_ALL_MEETINGS, payload, { auth: true });
+}
+
+export function getMeetingById(meetingId: number | string): Promise<MeetingDetailsData> {
+  return httpClient.get<MeetingDetailsData>(
+    `${API_ENDPOINTS.GET_MEETING_BY_ID}?MeetingId=${encodeURIComponent(String(meetingId))}`,
+    { auth: true }
+  );
 }
