@@ -44,7 +44,6 @@ const mainItems: NavItem[] = [
   { title: "Upload Meeting", url: "/upload", icon: Upload, roles: ["admin", "employee"] },
   { title: "Users", url: "/users", icon: Users, roles: ["superadmin", "admin"] },
   { title: "AI Insights", url: "/insights", icon: Sparkles, roles: ["admin", "employee"] },
-  { title: "Email Editor", url: "/email-editor", icon: Mail, roles: ["admin", "employee"] },
 ];
 
 const secondaryItems: NavItem[] = [
