@@ -31,3 +31,10 @@ export function getCompanyUsers(): Promise<CompanyUser[]> {
     { auth: true }
   );
 }
+
+export function getAllUsers(): Promise<AllUser[]> {
+  return httpClient.get<AllUser[]>(
+    `${API_ENDPOINTS.USERS}/GetAllUsers`,
+    { auth: true }
+  );
+}
