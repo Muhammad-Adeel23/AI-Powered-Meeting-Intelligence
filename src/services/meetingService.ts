@@ -5,6 +5,7 @@ import type {
   AnalyzeMeetingRequest,
   GetAllMeetingsRequest,
   PagedMeetings,
+  MeetingDetailsData,
 } from "@/models/meeting";
 
 export function analyzeMeeting(payload: AnalyzeMeetingRequest): Promise<ApiResponse<number>> {
