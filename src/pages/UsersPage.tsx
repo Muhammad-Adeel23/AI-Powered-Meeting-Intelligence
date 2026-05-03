@@ -12,7 +12,7 @@ import { Users, Plus, Search, Trash2, Mail, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import { getUserRoleDropdown, addCompanyUser } from "@/services/userService";
+import { getUserRoleDropdown, addCompanyUser, getAllUsers } from "@/services/userService";
 import type { UserRole, UserRoleDropdownItem } from "@/models";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,7 +47,7 @@ const UsersPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const role = user?.role || "employee";
-  const [allUsers, setAllUsers] = useState<UserEntry[]>(MOCK_USERS);
+  const [allUsers, setAllUsers] = useState<UserEntry[]>([]);
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -67,6 +67,28 @@ const UsersPage = () => {
       })
       .catch((err) => {
         sonnerToast.error(err instanceof Error ? err.message : "Failed to load roles");
+      });
+    getAllUsers()
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) return;
+        const mapped: UserEntry[] = data.map((u, idx) => {
+          const roleLower = (u.role || "").toLowerCase();
+          const role: UserRole = roleLower.includes("super")
+            ? "superadmin"
+            : roleLower.includes("admin")
+            ? "admin"
+            : "employee";
+          return {
+            id: `${u.email || idx}`,
+            name: u.name,
+            email: u.email,
+            role,
+          };
+        });
+        setAllUsers(mapped);
+      })
+      .catch((err) => {
+        sonnerToast.error(err instanceof Error ? err.message : "Failed to load users");
       });
     return () => {
       cancelled = true;
