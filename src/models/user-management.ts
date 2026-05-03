@@ -14,3 +14,11 @@ export interface CompanyUser {
   email: string;
   roleName: string;
 }
+
+// Models for /User/GetAllUsers
+export interface AllUser {
+  name: string;
+  email: string;
+  role: string;
+}
+
