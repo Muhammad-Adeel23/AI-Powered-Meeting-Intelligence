@@ -12,7 +12,7 @@ import { Users, Plus, Search, Trash2, Mail, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import { getUserRoleDropdown, addCompanyUser } from "@/services/userService";
+import { getUserRoleDropdown, addCompanyUser, getAllUsers } from "@/services/userService";
 import type { UserRole, UserRoleDropdownItem } from "@/models";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
