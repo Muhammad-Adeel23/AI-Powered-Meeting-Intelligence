@@ -47,7 +47,7 @@ const UsersPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const role = user?.role || "employee";
-  const [allUsers, setAllUsers] = useState<UserEntry[]>(MOCK_USERS);
+  const [allUsers, setAllUsers] = useState<UserEntry[]>([]);
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
